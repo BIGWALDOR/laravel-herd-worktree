@@ -75,7 +75,7 @@ Or manually:
 pkill -f "node.*vite" 2>/dev/null || true    # or "node.*webpack" for Mix
 pkill -f "node.*webpack" 2>/dev/null || true
 herd unlink $SITE_NAME
-git worktree remove .worktrees/$SITE_NAME
+git worktree remove --force .worktrees/$SITE_NAME
 git branch -d $BRANCH_NAME
 ```
 
@@ -118,7 +118,7 @@ Or manually:
 
 ```bash
 herd unlink $SITE_NAME
-git worktree remove .worktrees/$SITE_NAME
+git worktree remove --force .worktrees/$SITE_NAME
 git branch -D $BRANCH_NAME
 ```
 
@@ -138,6 +138,6 @@ Or manually:
 pkill -f "node.*vite" 2>/dev/null || true
 pkill -f "node.*webpack" 2>/dev/null || true
 herd unlink $SITE_NAME
-git worktree remove .worktrees/$SITE_NAME
+git worktree remove --force .worktrees/$SITE_NAME
 git branch -D $BRANCH_NAME
 ```

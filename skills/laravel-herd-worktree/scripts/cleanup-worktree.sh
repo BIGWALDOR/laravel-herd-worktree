@@ -19,13 +19,21 @@ pkill -f "node.*webpack" 2>/dev/null || true
 # Unlink from Laravel Herd
 herd unlink "$SITE_NAME" 2>/dev/null || true
 
-# Remove the worktree
+# Remove the worktree (--force handles uncommitted/untracked changes)
 cd "$PROJECT_ROOT"
-git worktree remove ".worktrees/$SITE_NAME" 2>/dev/null || true
-
-# Optionally delete the branch
-if [ -n "$DELETE_BRANCH" ]; then
-  git branch -D "$DELETE_BRANCH" 2>/dev/null || true
+if git worktree remove --force ".worktrees/$SITE_NAME" 2>/dev/null; then
+  echo "Removed worktree: .worktrees/$SITE_NAME"
+else
+  echo "WARNING: Failed to remove worktree .worktrees/$SITE_NAME — it may not exist or require manual removal." >&2
 fi
 
-echo "Cleaned up worktree: $SITE_NAME"
+# Optionally delete the branch (only possible after worktree is removed)
+if [ -n "$DELETE_BRANCH" ]; then
+  if git branch -D "$DELETE_BRANCH" 2>/dev/null; then
+    echo "Deleted branch: $DELETE_BRANCH"
+  else
+    echo "WARNING: Failed to delete branch '$DELETE_BRANCH' — it may not exist or is still linked to a worktree." >&2
+  fi
+fi
+
+echo "Cleanup complete for: $SITE_NAME"
