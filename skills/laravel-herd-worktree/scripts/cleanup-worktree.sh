@@ -1,20 +1,40 @@
 #!/usr/bin/env bash
 # Clean up a Laravel Herd worktree: stop processes, unlink, remove worktree.
-# Usage: ./cleanup-worktree.sh <project-root> <site-name> [--delete-branch <branch-name>]
+# Usage: ./cleanup-worktree.sh <project-root> <site-name> [--build-tool <tool>] [--delete-branch <branch-name>]
 
 set -euo pipefail
 
 PROJECT_ROOT="$1"
 SITE_NAME="$2"
+shift 2
+
+BUILD_TOOL=""
 DELETE_BRANCH=""
 
-if [ "${3:-}" = "--delete-branch" ] && [ -n "${4:-}" ]; then
-  DELETE_BRANCH="$4"
-fi
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --build-tool)
+      BUILD_TOOL="$2"
+      shift 2
+      ;;
+    --delete-branch)
+      DELETE_BRANCH="$2"
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
 
 # Kill Vite and Webpack dev processes
 pkill -f "node.*vite" 2>/dev/null || true
 pkill -f "node.*webpack" 2>/dev/null || true
+
+# Unsecure the site if it was secured (Mix projects use HTTPS)
+if [ "$BUILD_TOOL" = "mix" ]; then
+  herd unsecure "$SITE_NAME" 2>/dev/null || true
+fi
 
 # Unlink from Laravel Herd
 herd unlink "$SITE_NAME" 2>/dev/null || true

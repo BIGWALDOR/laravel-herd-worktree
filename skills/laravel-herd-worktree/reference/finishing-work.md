@@ -66,7 +66,7 @@ gh pr create --base $DEFAULT_BRANCH --title "Description (#TASK_NUMBER)" --body 
 Run the cleanup script from the main project directory:
 
 ```bash
-bash scripts/cleanup-worktree.sh "$PROJECT_ROOT" "$SITE_NAME" --delete-branch "$BRANCH_NAME"
+bash scripts/cleanup-worktree.sh "$PROJECT_ROOT" "$SITE_NAME" --build-tool "$BUILD_TOOL" --delete-branch "$BRANCH_NAME"
 ```
 
 Or manually:
@@ -74,6 +74,7 @@ Or manually:
 ```bash
 pkill -f "node.*vite" 2>/dev/null || true    # or "node.*webpack" for Mix
 pkill -f "node.*webpack" 2>/dev/null || true
+if [ "$BUILD_TOOL" = "mix" ]; then herd unsecure $SITE_NAME; fi
 herd unlink $SITE_NAME
 git worktree remove --force .worktrees/$SITE_NAME
 git branch -d $BRANCH_NAME
@@ -111,12 +112,13 @@ If merge conflicts occur, list the conflicting files and ask the user how to pro
 ### B.3. Clean Up Worktree
 
 ```bash
-bash scripts/cleanup-worktree.sh "$PROJECT_ROOT" "$SITE_NAME" --delete-branch "$BRANCH_NAME"
+bash scripts/cleanup-worktree.sh "$PROJECT_ROOT" "$SITE_NAME" --build-tool "$BUILD_TOOL" --delete-branch "$BRANCH_NAME"
 ```
 
 Or manually:
 
 ```bash
+if [ "$BUILD_TOOL" = "mix" ]; then herd unsecure $SITE_NAME; fi
 herd unlink $SITE_NAME
 git worktree remove --force .worktrees/$SITE_NAME
 git branch -D $BRANCH_NAME
@@ -129,7 +131,7 @@ git branch -D $BRANCH_NAME
 ## Option C: Abandon Changes
 
 ```bash
-bash scripts/cleanup-worktree.sh "$PROJECT_ROOT" "$SITE_NAME" --delete-branch "$BRANCH_NAME"
+bash scripts/cleanup-worktree.sh "$PROJECT_ROOT" "$SITE_NAME" --build-tool "$BUILD_TOOL" --delete-branch "$BRANCH_NAME"
 ```
 
 Or manually:
@@ -137,6 +139,7 @@ Or manually:
 ```bash
 pkill -f "node.*vite" 2>/dev/null || true
 pkill -f "node.*webpack" 2>/dev/null || true
+if [ "$BUILD_TOOL" = "mix" ]; then herd unsecure $SITE_NAME; fi
 herd unlink $SITE_NAME
 git worktree remove --force .worktrees/$SITE_NAME
 git branch -D $BRANCH_NAME

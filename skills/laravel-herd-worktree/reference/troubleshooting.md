@@ -6,15 +6,20 @@ Before considering setup complete, verify:
 
 - [ ] Build tool detected and confirmed (`$BUILD_TOOL = vite` or `mix`)
 - [ ] Worktree created at `.worktrees/$SITE_NAME`
-- [ ] Herd link created (`herd link $SITE_NAME`) — site is **NOT** secured (HTTP only)
+- [ ] Herd link created (`herd link $SITE_NAME`)
+- [ ] **(Mix only)** Site secured (`herd secure $SITE_NAME`) — HTTPS
+- [ ] **(Vite only)** Site is **NOT** secured — HTTP only
 - [ ] `.env` copied with `APP_URL`, `SESSION_DOMAIN`, and `SESSION_SECURE_COOKIE` updated
+- [ ] **(Mix)** `APP_URL=https://...`, `SESSION_SECURE_COOKIE=true`
+- [ ] **(Vite)** `APP_URL=http://...`, `SESSION_SECURE_COOKIE=false`
 - [ ] `SANCTUM_STATEFUL_DOMAINS` includes the worktree domain (if key exists)
 - [ ] `composer install` completed successfully
 - [ ] `npm install` completed successfully
 - [ ] **(Vite only)** `vite.config.js` has `host: 'localhost'` and `cors: true`
 - [ ] **(Vite only)** `npm run dev` running from worktree directory
 - [ ] **(Mix only)** `npm run watch` running from worktree directory
-- [ ] Site accessible at `http://$SITE_NAME.test` (no white page)
+- [ ] **(Mix)** Site accessible at `https://$SITE_NAME.test`
+- [ ] **(Vite)** Site accessible at `http://$SITE_NAME.test`
 
 ---
 
@@ -28,7 +33,12 @@ Before considering setup complete, verify:
 ### Cookie Rejected for Invalid Domain
 
 - **Cause:** `SESSION_DOMAIN` doesn't match the worktree site
-- **Fix:** Update `SESSION_DOMAIN=$SITE_NAME.test`, add `SESSION_SECURE_COOKIE=false`, run `php artisan config:clear`, clear browser cookies
+- **Fix:** Update `SESSION_DOMAIN=$SITE_NAME.test`, set `SESSION_SECURE_COOKIE` to match protocol, run `php artisan config:clear`, clear browser cookies
+
+### Session Not Persisting on Mix HTTPS Site
+
+- **Cause:** `SESSION_SECURE_COOKIE=false` on an HTTPS site — the browser sends the cookie but it may not be set correctly when the secure flag doesn't match
+- **Fix:** Set `SESSION_SECURE_COOKIE=true` in `.env`, run `php artisan config:clear`, clear browser cookies
 
 ### White Page / CORS Errors (Vite Only)
 
@@ -41,10 +51,11 @@ Before considering setup complete, verify:
 - **Cause:** Mix watcher not running or ran from wrong directory
 - **Fix:** `pkill -f "node.*webpack"`, then run `npm run watch` from the **worktree** directory
 
-### Mixed Content Error
+### Mixed Content Error (Vite Only)
 
-- **Cause:** HTTPS site trying to load HTTP dev server assets
-- **Fix:** Run `herd unsecure $SITE_NAME`, update `APP_URL` to `http://`, `php artisan config:clear`, restart dev server
+- **Cause:** HTTPS site trying to load HTTP Vite dev server assets
+- **Fix:** Run `herd unsecure $SITE_NAME`, update `APP_URL` to `http://`, set `SESSION_SECURE_COOKIE=false`, `php artisan config:clear`, restart dev server
+- **Note:** Mix projects are intentionally secured with `herd secure` and don't have this issue since assets are compiled to `public/`
 
 ### Missing vendor or node_modules
 

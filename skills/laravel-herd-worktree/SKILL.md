@@ -37,10 +37,10 @@ Sets up a git worktree for Laravel projects served by Laravel Herd, with its own
 Follow each step in order. Full details, commands, and AskUserQuestion blocks are in [reference/setup-steps.md](reference/setup-steps.md).
 
 0. **Detect build tool** — Run `scripts/detect-build-tool.sh`, confirm with user → `$BUILD_TOOL`
-1. **Project & branch names** — Detect `$PROJECT_NAME`, get `$BRANCH_NAME`, ask for `$BASE_BRANCH`, construct `$SITE_NAME`
+1. **Project & branch names** — Detect `$PROJECT_NAME`, get `$BRANCH_NAME`, ask for `$BASE_BRANCH`, extract `$TICKET_ID` from branch name (`ma-\d+`), construct `$SITE_NAME` as `$TICKET_ID-$PROJECT_NAME`
 2. **Create worktree** — `git worktree add .worktrees/$SITE_NAME -b $BRANCH_NAME $BASE_BRANCH`
-3. **Link with Herd** — `herd link $SITE_NAME` (do NOT `herd secure`)
-4. **Configure .env** — Run `scripts/configure-env.sh` or manual sed. See [examples/env-config.md](examples/env-config.md)
+3. **Link with Herd** — `herd link $SITE_NAME`. Mix: run `herd secure $SITE_NAME` (HTTPS). Vite: HTTP only (do NOT `herd secure`)
+4. **Configure .env** — Run `scripts/configure-env.sh` with `$BUILD_TOOL` or manual sed. See [examples/env-config.md](examples/env-config.md)
 5. **Install dependencies** — AskUserQuestion for composer flags, then composer/npm install, cache clear
 6. **CORS config** — Vite only: add `host: 'localhost'` + `cors: true`. See [examples/vite-config.md](examples/vite-config.md). Skip for Mix.
 7. **Start dev server** — Kill existing processes, then `npm run dev` (Vite) or `npm run watch` (Mix)
@@ -49,7 +49,9 @@ Follow each step in order. Full details, commands, and AskUserQuestion blocks ar
 
 Tell the user:
 
-> "Your worktree is ready at `http://$SITE_NAME.test`. All edits should be made in `.worktrees/$SITE_NAME/`. When you're done, run `/laravel-herd-worktree` again and I'll help you integrate or clean up."
+> Mix: "Your worktree is ready at `https://$SITE_NAME.test`."
+> Vite: "Your worktree is ready at `http://$SITE_NAME.test`."
+> "All edits should be made in `.worktrees/$SITE_NAME/`. When you're done, run `/laravel-herd-worktree` again and I'll help you integrate or clean up."
 
 ## Finishing Work
 
@@ -60,10 +62,10 @@ When the user returns to finish, present three options: Create PR, Transfer to m
 | Variable | Example |
 |----------|---------|
 | `$PROJECT_NAME` | `appetise-web` |
-| `$BRANCH_NAME` | `feature/login` |
-| `$SANITIZED_BRANCH_NAME` | `feature-login` |
+| `$BRANCH_NAME` | `feature/ma-123-login` |
+| `$TICKET_ID` | `ma-123` |
 | `$BASE_BRANCH` | `main` |
-| `$SITE_NAME` | `appetise-web-feature-login` |
+| `$SITE_NAME` | `ma-123-appetise-web` |
 | `$BUILD_TOOL` | `vite` or `mix` |
 
 ## CRITICAL: Working Directory

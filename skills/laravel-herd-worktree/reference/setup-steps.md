@@ -47,7 +47,7 @@ PROJECT_NAME=$(basename "$PWD")
 
 ```
 AskUserQuestion:
-  question: "Project name detected as '$PROJECT_NAME'. This will be used for the Herd URL (e.g., projectname-branchname.test). Is this correct?"
+  question: "Project name detected as '$PROJECT_NAME'. This will be used for the Herd URL (e.g., ma-123-projectname.test). Is this correct?"
   header: "Project"
   options:
     - label: "Yes, use '$PROJECT_NAME'"
@@ -98,14 +98,39 @@ Dynamically populate the options with branches from `$BASE_CANDIDATES`, marking 
 
 Store the confirmed value as `$BASE_BRANCH`.
 
+**Extract the Linear ticket ID and construct the site name:**
+
+```bash
+# Extract Linear ticket ID (e.g., "ma-123") from branch name
+TICKET_ID=$(echo "$BRANCH_NAME" | grep -oE 'ma-[0-9]+' | head -1)
+```
+
+If `$TICKET_ID` is empty, use AskUserQuestion to ask:
+
+```
+AskUserQuestion:
+  question: "I couldn't find a Linear ticket ID (e.g., ma-123) in the branch name '$BRANCH_NAME'. What is the ticket ID?"
+  header: "Ticket ID"
+  options:
+    - label: "Enter ticket ID"
+      description: "I'll provide the Linear ticket ID (e.g., ma-456)"
+    - label: "No ticket ID"
+      description: "Skip ticket ID — use branch name instead"
+```
+
 **Construct the site name:**
 
 ```bash
-SANITIZED_BRANCH_NAME=$(echo "$BRANCH_NAME" | tr '/' '-')
-SITE_NAME="$PROJECT_NAME-$SANITIZED_BRANCH_NAME"
+if [ -n "$TICKET_ID" ]; then
+  SITE_NAME="$TICKET_ID-$PROJECT_NAME"
+else
+  # Fallback: use sanitized branch name (old format)
+  SANITIZED_BRANCH_NAME=$(echo "$BRANCH_NAME" | tr '/' '-')
+  SITE_NAME="$PROJECT_NAME-$SANITIZED_BRANCH_NAME"
+fi
 ```
 
-Example: project `appetise-web` + branch `feature/login` -> `appetise-web-feature-login.test`
+Example: project `appetise-web` + branch `feature/ma-123-login` -> `ma-123-appetise-web.test`
 
 ---
 
@@ -130,9 +155,17 @@ cd /path/to/project/.worktrees/$SITE_NAME
 herd link $SITE_NAME
 ```
 
-This creates a site at `http://$SITE_NAME.test`.
+**If `$BUILD_TOOL = "mix"`:** Run `herd secure` after linking — Mix compiles assets to `public/`, so HTTPS works without mixed content issues.
 
-**Do NOT run `herd secure`** — keep the site on HTTP to avoid mixed content issues with the dev process.
+```bash
+herd secure $SITE_NAME
+```
+
+The site is now available at `https://$SITE_NAME.test`.
+
+**If `$BUILD_TOOL = "vite"`:** Do **NOT** run `herd secure` — keep the site on HTTP to avoid mixed content issues with the Vite dev server.
+
+The site is available at `http://$SITE_NAME.test`.
 
 ---
 
@@ -141,7 +174,7 @@ This creates a site at `http://$SITE_NAME.test`.
 Run the configuration script:
 
 ```bash
-bash scripts/configure-env.sh /path/to/main/project/.env /path/to/worktree $SITE_NAME
+bash scripts/configure-env.sh /path/to/main/project/.env /path/to/worktree $SITE_NAME $BUILD_TOOL
 ```
 
 Or manually:
@@ -149,7 +182,13 @@ Or manually:
 ```bash
 cp /path/to/main/project/.env /path/to/worktree/.env
 
-sed -i '' "s|APP_URL=.*|APP_URL=http://$SITE_NAME.test|" .env
+# Set protocol based on build tool
+if [ "$BUILD_TOOL" = "mix" ]; then
+  sed -i '' "s|APP_URL=.*|APP_URL=https://$SITE_NAME.test|" .env
+else
+  sed -i '' "s|APP_URL=.*|APP_URL=http://$SITE_NAME.test|" .env
+fi
+
 sed -i '' "s|SESSION_DOMAIN=.*|SESSION_DOMAIN=$SITE_NAME.test|" .env
 
 # Append to SANCTUM_STATEFUL_DOMAINS (if present)
@@ -157,7 +196,12 @@ if grep -q "SANCTUM_STATEFUL_DOMAINS" .env; then
   sed -i '' "s|SANCTUM_STATEFUL_DOMAINS=\(.*\)|SANCTUM_STATEFUL_DOMAINS=\1,$SITE_NAME.test|" .env
 fi
 
-echo "SESSION_SECURE_COOKIE=false" >> .env
+# Set secure cookie to match protocol
+if [ "$BUILD_TOOL" = "mix" ]; then
+  echo "SESSION_SECURE_COOKIE=true" >> .env
+else
+  echo "SESSION_SECURE_COOKIE=false" >> .env
+fi
 ```
 
 See [examples/env-config.md](../examples/env-config.md) for detailed before/after examples and key rules.
