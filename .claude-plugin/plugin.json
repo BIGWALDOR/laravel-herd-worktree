@@ -1,9 +1,9 @@
 {
   "name": "laravel-herd-worktree",
   "version": "1.0.0",
-  "description": "Set up git worktrees for Laravel projects with Laravel Herd integration",
+  "description": "Set up git worktrees for Laravel projects with Laravel Herd integration. Supports Vite and Laravel Mix (Webpack).",
   "author": {
-    "name": "Harris Raftopoulos"
+    "name": "BIGWALDOR"
   },
   "license": "MIT",
   "keywords": [
@@ -12,7 +12,10 @@
     "worktree",
     "git",
     "development",
-    "workflow"
+    "workflow",
+    "vite",
+    "mix",
+    "webpack"
   ],
-  "repository": "https://github.com/harris21/laravel-herd-worktree"
+  "repository": "https://github.com/BIGWALDOR/laravel-herd-worktree"
 }
