@@ -71,6 +71,33 @@ AskUserQuestion:
       description: "Experimental/testing branch"
 ```
 
+**Detect available branches and ask which base branch to create from:**
+
+```bash
+# Get the current branch
+CURRENT_BRANCH=$(git branch --show-current)
+
+# Get common base branch candidates that exist locally
+BASE_CANDIDATES=$(git branch --list main master develop staging | sed 's/^[* ]*//')
+```
+
+```
+AskUserQuestion:
+  question: "Which branch should the worktree be created from? (Currently on '$CURRENT_BRANCH')"
+  header: "Base Branch"
+  options:
+    - label: "$CURRENT_BRANCH (Current)"
+      description: "Create the worktree from the branch you're currently on"
+    - label: "main"
+      description: "Create from the main branch"
+    - label: "Other"
+      description: "I'll type a different branch name"
+```
+
+Dynamically populate the options with branches from `$BASE_CANDIDATES`, marking the current branch. If the user selects "Other", ask them to type the branch name.
+
+Store the confirmed value as `$BASE_BRANCH`.
+
 **Construct the site name:**
 
 ```bash
@@ -88,8 +115,8 @@ Example: project `appetise-web` + branch `feature/login` -> `appetise-web-featur
 # Check if worktree already exists
 git worktree list | grep "$BRANCH_NAME"
 
-# If not, create it
-git worktree add .worktrees/$SITE_NAME -b $BRANCH_NAME
+# If not, create it from the chosen base branch
+git worktree add .worktrees/$SITE_NAME -b $BRANCH_NAME $BASE_BRANCH
 ```
 
 The worktree is created inside `.worktrees/` in the main project directory.

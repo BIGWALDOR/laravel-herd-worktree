@@ -37,8 +37,8 @@ Sets up a git worktree for Laravel projects served by Laravel Herd, with its own
 Follow each step in order. Full details, commands, and AskUserQuestion blocks are in [reference/setup-steps.md](reference/setup-steps.md).
 
 0. **Detect build tool** — Run `scripts/detect-build-tool.sh`, confirm with user → `$BUILD_TOOL`
-1. **Project & branch names** — Detect `$PROJECT_NAME`, get `$BRANCH_NAME`, construct `$SITE_NAME`
-2. **Create worktree** — `git worktree add .worktrees/$SITE_NAME -b $BRANCH_NAME`
+1. **Project & branch names** — Detect `$PROJECT_NAME`, get `$BRANCH_NAME`, ask for `$BASE_BRANCH`, construct `$SITE_NAME`
+2. **Create worktree** — `git worktree add .worktrees/$SITE_NAME -b $BRANCH_NAME $BASE_BRANCH`
 3. **Link with Herd** — `herd link $SITE_NAME` (do NOT `herd secure`)
 4. **Configure .env** — Run `scripts/configure-env.sh` or manual sed. See [examples/env-config.md](examples/env-config.md)
 5. **Install dependencies** — AskUserQuestion for composer flags, then composer/npm install, cache clear
@@ -62,6 +62,7 @@ When the user returns to finish, present three options: Create PR, Transfer to m
 | `$PROJECT_NAME` | `appetise-web` |
 | `$BRANCH_NAME` | `feature/login` |
 | `$SANITIZED_BRANCH_NAME` | `feature-login` |
+| `$BASE_BRANCH` | `main` |
 | `$SITE_NAME` | `appetise-web-feature-login` |
 | `$BUILD_TOOL` | `vite` or `mix` |
 
