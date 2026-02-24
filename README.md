@@ -33,14 +33,14 @@ It also handles cleanup and PR creation when you're done.
 ### Via Claude Marketplace (Recommended)
 
 ```bash
-/plugin install laravel-herd-worktree@harrisrafto-laravel-tools
+/plugin install laravel-herd-worktree@bigwaldor-laravel-tools
 ```
 
 ### Manual Installation
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/harris21/laravel-herd-worktree.git ~/.claude/plugins/laravel-herd-worktree
+   git clone https://github.com/BIGWALDOR/laravel-herd-worktree ~/.claude/plugins/laravel-herd-worktree
    ```
 
 2. Add to your Claude Code configuration:
@@ -122,13 +122,13 @@ See the skill's "Common Issues" section for complete troubleshooting.
 To add this skill to the Claude marketplace:
 
 ```bash
-/plugin marketplace add harris21/laravel-herd-worktree
+/plugin marketplace add BIGWALDOR/laravel-herd-worktree
 ```
 
 To update an already installed plugin:
 
 ```bash
-/plugin update laravel-herd-worktree@harrisrafto-laravel-tools
+/plugin update laravel-herd-worktree@bigwaldor-laravel-tools
 ```
 
 ## License
