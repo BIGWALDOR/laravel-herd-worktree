@@ -259,7 +259,10 @@ npm run dev
 ```bash
 pkill -f "node.*webpack" 2>/dev/null || true
 rm -f public/hot
-npm run watch
+npm run dev          # Initial build — generates public/mix-manifest.json
+npm run watch        # Then start watching for changes
 ```
+
+**Important:** The initial `npm run dev` must complete before starting `npm run watch`. Without it, `public/mix-manifest.json` won't exist and Laravel will throw "The Mix manifest does not exist" when the site is visited.
 
 For Mix projects, inform the user: "Assets are being compiled. For hot module replacement, you can stop this and run `npm run hot` instead."

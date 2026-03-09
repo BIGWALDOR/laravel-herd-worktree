@@ -43,7 +43,7 @@ Follow each step in order. Full details, commands, and AskUserQuestion blocks ar
 4. **Configure .env** — Run `scripts/configure-env.sh` with `$BUILD_TOOL` or manual sed. See [examples/env-config.md](examples/env-config.md)
 5. **Install dependencies** — AskUserQuestion for composer flags, then composer/npm install, cache clear
 6. **CORS config** — Vite only: add `host: 'localhost'` + `cors: true`. See [examples/vite-config.md](examples/vite-config.md). Skip for Mix.
-7. **Start dev server** — Kill existing processes, then `npm run dev` (Vite) or `npm run watch` (Mix)
+7. **Start dev server** — Kill existing processes, then `npm run dev` (Vite) or `npm run dev` followed by `npm run watch` (Mix — initial build prevents mix-manifest error)
 
 ## Setup Complete
 

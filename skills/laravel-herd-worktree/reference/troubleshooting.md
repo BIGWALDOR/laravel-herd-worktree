@@ -46,6 +46,11 @@ Before considering setup complete, verify:
 - **Fix:** Update `vite.config.js` to `host: 'localhost'` and `cors: true`, restart `npm run dev`
 - See [examples/vite-config.md](../examples/vite-config.md)
 
+### "The Mix manifest does not exist" (Mix Only)
+
+- **Cause:** `public/mix-manifest.json` hasn't been generated yet — `npm run watch` was started without an initial build completing first
+- **Fix:** Run `npm run dev` from the worktree directory to generate the manifest, then restart `npm run watch`
+
 ### Assets Not Loading (Mix)
 
 - **Cause:** Mix watcher not running or ran from wrong directory
