@@ -10,10 +10,7 @@
   "plugins": [
     {
       "name": "laravel-herd-worktree",
-      "source": {
-        "source": "github",
-        "repo": "BIGWALDOR/laravel-herd-worktree"
-      },
+      "source": "./",
       "description": "Set up git worktrees for Laravel projects with Laravel Herd integration. Supports Vite and Laravel Mix (Webpack).",
       "version": "1.0.0",
       "author": {

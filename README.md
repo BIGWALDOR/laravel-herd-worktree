@@ -30,22 +30,30 @@ It also handles cleanup and PR creation when you're done.
 
 ## Installation
 
-### Via Claude Marketplace (Recommended)
+### Via Claude Code CLI
 
-```bash
-/plugin install laravel-herd-worktree@bigwaldor-laravel-tools
-```
-
-### Manual Installation
-
-1. Clone this repository:
+1. Add the marketplace:
    ```bash
-   git clone https://github.com/BIGWALDOR/laravel-herd-worktree ~/.claude/plugins/laravel-herd-worktree
+   claude plugin marketplace add BIGWALDOR/laravel-herd-worktree
    ```
 
-2. Add to your Claude Code configuration:
+2. Install the plugin:
    ```bash
-   claude plugins add ~/.claude/plugins/laravel-herd-worktree
+   claude plugin install laravel-herd-worktree@bigwaldor-laravel-tools
+   ```
+
+### Via Claude Code Slash Commands
+
+From within a Claude Code session:
+
+1. Add the marketplace:
+   ```
+   /plugin marketplace add BIGWALDOR/laravel-herd-worktree
+   ```
+
+2. Install the plugin:
+   ```
+   /plugin install laravel-herd-worktree@bigwaldor-laravel-tools
    ```
 
 ## Usage
@@ -117,18 +125,12 @@ Plus a Herd site at `http://your-project-feature-branch.test`
 
 See the skill's "Common Issues" section for complete troubleshooting.
 
-## Publishing (For Maintainers)
-
-To add this skill to the Claude marketplace:
-
-```bash
-/plugin marketplace add BIGWALDOR/laravel-herd-worktree
-```
+## Updating
 
 To update an already installed plugin:
 
 ```bash
-/plugin update laravel-herd-worktree@bigwaldor-laravel-tools
+claude plugin update laravel-herd-worktree@bigwaldor-laravel-tools
 ```
 
 ## License
