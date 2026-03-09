@@ -10,21 +10,22 @@ A Claude Code skill that automates setting up git worktrees for Laravel projects
 
 When you need to work on a feature branch in isolation, this skill:
 
-1. **Creates a git worktree** in `.worktrees/<project-name>-<branch-name>`
-2. **Links with Laravel Herd** to serve the worktree at `http://<project-name>-<branch-name>.test`
-3. **Configures environment** - copies and updates `.env` with correct URLs, session domains, and Sanctum settings
-4. **Installs dependencies** - runs `composer install` and `npm install`
-5. **Starts development** - kills stale Vite processes and starts fresh
+1. **Detects build tool** — auto-detects Vite or Laravel Mix (Webpack) and adjusts setup accordingly
+2. **Creates a git worktree** in `.worktrees/<ticket-id>-<project-name>` (e.g., `ma-123-appetise-web`)
+3. **Links with Laravel Herd** — serves the worktree at `http://` (Vite) or `https://` (Mix, via `herd secure`)
+4. **Configures environment** — copies and updates `.env` with correct APP_URL, session domain, Sanctum domains, and secure cookie settings
+5. **Installs dependencies** — runs `composer install` and `npm install`
+6. **Starts development** — kills stale dev server processes and starts fresh (`npm run dev` for Vite, `npm run dev` + `npm run watch` for Mix)
 
-It also handles cleanup and PR creation when you're done.
+When you're done, re-invoke the skill to create a PR, transfer changes back to the main directory, or abandon the worktree.
 
-**Why project name + branch name?** This prevents conflicts when multiple projects have the same branch (e.g., both `project-a` and `project-b` have a `feature/login` branch).
+**Site naming convention:** The skill extracts a Linear ticket ID (e.g., `ma-123`) from the branch name and combines it with the project name to create the site URL: `ma-123-appetise-web.test`. If no ticket ID is found, it falls back to `<project-name>-<branch-name>`.
 
 ## Prerequisites
 
 - **Laravel Herd** installed and running on macOS
 - **Git** for version control
-- **Vite** as the frontend build tool (skill assumes Vite, not Webpack/Mix)
+- **Vite or Laravel Mix (Webpack)** as the frontend build tool (auto-detected)
 - **npm** as package manager (adjust commands if using yarn/pnpm)
 - **Laravel Sanctum** if using API authentication (optional - skill handles this if present)
 
@@ -72,12 +73,16 @@ The skill is automatically invoked when you mention worktrees with Laravel Herd 
 
 ## Configuration
 
-### Default Branch
+### Base Branch
 
-The skill defaults to `develop` as the base branch for PRs. If your project uses a different default branch (e.g., `main` or `master`), you can:
+The skill detects available branches (`main`, `master`, `develop`, `staging`) and asks you to choose which one to create the worktree from. For PRs, it auto-detects the repository's default branch via `git symbolic-ref refs/remotes/origin/HEAD`.
 
-1. Let Claude detect it automatically (it will check `git symbolic-ref refs/remotes/origin/HEAD`)
-2. Specify it when creating the PR
+### Build Tool
+
+The skill auto-detects whether your project uses Vite (`vite.config.js`/`.ts`) or Laravel Mix (`webpack.mix.js`) and confirms with you before proceeding. This affects:
+- **Protocol** — Vite uses HTTP, Mix uses HTTPS (via `herd secure`)
+- **Dev server** — Vite runs `npm run dev`, Mix runs `npm run dev` then `npm run watch`
+- **CORS** — Vite needs `host: 'localhost'` and `cors: true` in vite.config; Mix doesn't need CORS config
 
 ### Package Manager
 
@@ -92,13 +97,25 @@ If your project requires specific composer flags (like `--ignore-platform-reqs`)
 ```
 your-project/
 ├── .worktrees/
-│   └── your-project-feature-branch/  # Your isolated worktree
-│       ├── .env             # Configured for http://your-project-feature-branch.test
+│   └── ma-123-your-project/          # Your isolated worktree
+│       ├── .env             # Configured for the worktree URL
 │       ├── vendor/          # Fresh composer install
 │       └── node_modules/    # Fresh npm install
 ```
 
-Plus a Herd site at `http://your-project-feature-branch.test`
+Plus a Herd site:
+- Vite: `http://ma-123-your-project.test`
+- Mix: `https://ma-123-your-project.test` (secured with `herd secure`)
+
+## Finishing Work
+
+When you're done working, invoke `/laravel-herd-worktree` again. The skill presents three options:
+
+- **Create PR** — commits changes, pushes the branch, runs `gh pr create`, and cleans up the worktree
+- **Transfer to main** — merges changes back into your main directory (with `--no-commit --no-ff`) for you to stage and commit manually
+- **Abandon** — discards changes and cleans up the worktree
+
+Cleanup automatically kills dev server processes, runs `herd unlink` (and `herd unsecure` for Mix), removes the worktree, and optionally deletes the branch.
 
 ## Common Issues
 
@@ -110,20 +127,30 @@ Plus a Herd site at `http://your-project-feature-branch.test`
 - Update `SESSION_DOMAIN` in `.env` to match worktree domain
 - Add `SESSION_SECURE_COOKIE=false` for HTTP sites
 
-### CORS Errors / White page
+### CORS Errors / White page (Vite)
 - Ensure `vite.config.js` has `host: 'localhost'` and `cors: true`
 - Restart Vite from the worktree directory
 
-### Mixed Content Error
+### Mixed Content Error (Vite)
 - Don't secure the Herd site (use HTTP, not HTTPS)
 - Keep `APP_URL` as `http://` not `https://`
 
-### Assets not loading
+### Assets not loading (Vite)
 - Kill all Vite processes: `pkill -f "node.*vite"`
 - Remove hot file: `rm -f public/hot`
 - Restart Vite from worktree
 
-See the skill's "Common Issues" section for complete troubleshooting.
+### "The Mix manifest does not exist" (Mix)
+- Run `npm run dev` from the worktree directory to generate `public/mix-manifest.json`
+- Then restart `npm run watch`
+
+### Session not persisting (Mix)
+- Set `SESSION_SECURE_COOKIE=true` in `.env` (Mix uses HTTPS)
+- Run `php artisan config:clear` and clear browser cookies
+
+### Assets not loading (Mix)
+- Kill webpack processes: `pkill -f "node.*webpack"`
+- Run `npm run watch` from the **worktree** directory (not the main project)
 
 ## Updating
 
@@ -132,6 +159,15 @@ To update an already installed plugin:
 ```bash
 claude plugin update laravel-herd-worktree@bigwaldor-laravel-tools
 ```
+
+## Attribution
+
+This project is a fork of [harris21/laravel-herd-worktree](https://github.com/harris21/laravel-herd-worktree), which provided the original Vite-only, prompt-based skill. This fork extends it with:
+
+- **Laravel Mix (Webpack) support** alongside Vite
+- **Deterministic execution** via shell scripts (replacing the purely prompt-driven flow)
+- **Ticket-ID-based site naming** (e.g., `ma-123-project.test`) extracted from branch names
+- **Structured reference docs and examples** to guide the skill more reliably
 
 ## License
 
