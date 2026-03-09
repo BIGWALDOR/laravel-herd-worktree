@@ -31,7 +31,7 @@ When you're done, re-invoke the skill to create a PR, transfer changes back to t
 
 ## Installation
 
-### Via Claude Code CLI
+### Via your preferred terminal
 
 1. Add the marketplace:
    ```bash
